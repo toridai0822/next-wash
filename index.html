@@ -291,12 +291,13 @@ function showResults(v) {
 }
 
 async function geocodeCity(city) {
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=ja&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=ja&format=json`;
   const res = await fetch(url);
   const data = await res.json();
   if (!data.results || data.results.length === 0) throw new Error('場所が見つかりませんでした。別の地名で試してください。');
-  const r = data.results[0];
-  return { lat: r.latitude, lon: r.longitude, name: r.name + (r.admin1 ? '（' + r.admin1 + '）' : '') };
+  // 日本（JP）の結果を優先、なければ最初の結果を使う
+  const jp = data.results.find(r => r.country_code === 'JP') || data.results[0];
+  return { lat: jp.latitude, lon: jp.longitude, name: jp.name + (jp.admin1 ? '（' + jp.admin1 + '）' : '') };
 }
 
 async function fetchWeather(lat, lon) {
